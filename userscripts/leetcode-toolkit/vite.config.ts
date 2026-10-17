@@ -2,8 +2,35 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import monkey, { cdn } from "vite-plugin-monkey";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { readFileSync } from "node:fs";
 
+const projectLicense = readFileSync(
+    new URL("../../LICENSE", import.meta.url),
+    "utf8",
+);
 export default defineConfig({
+    build: {
+        minify: false,
+        rollupOptions: {
+            output: {
+                banner: `/*
+${projectLicense}
+
+Modified version maintained by liliujie2026.
+Upstream: https://github.com/eclipher/Userscripts
+
+Bundled dependencies:
+- svelte@5.38.6: https://www.npmjs.com/package/svelte
+- remeda@2.30.0: https://www.npmjs.com/package/remeda
+- toast-rack@0.2.1: https://www.npmjs.com/package/toast-rack
+- @joplin/turndown-plugin-gfm@1.0.63:
+  https://www.npmjs.com/package/@joplin/turndown-plugin-gfm
+- @sec-ant/gm-fetch@1.2.3:
+  https://www.npmjs.com/package/@sec-ant/gm-fetch
+*/`,
+            },
+        },
+    },
     plugins: [
         svelte(),
         tsconfigPaths(),
@@ -25,15 +52,18 @@ export default defineConfig({
                     "zh-CN": "LeetCode工具箱",
                 },
                 description: {
-                    "": "Find & Save Editorial, Copy problem as Markdown or Download as Jupyter Notebook, Format on Save, Unlock IntelliSense, Display Problem Ratings and more.",
+                    "": "Copy or download official and community solutions as Markdown, export problems as Jupyter Notebook, format code, enable IntelliSense and display problem ratings.",
                     "zh-CN":
-                        "复制题目为 Markdown | 下载为 Jupyter Notebook | 保存时自动格式化 | 免费自动补全 | 显示题目评分",
+                        "复制/下载官方及社区题解 Markdown | 题目导出 Jupyter Notebook | 保存时格式化 | 自动补全 | 题目评分",
                 },
-                author: "eclipher",
-                // keep the old link, so userscript manager can know it's the same script and update correctly
-                namespace: "https://github.com/eclipher/leetcode-toolkit",
+                author: "eclipher; liliujie2026",
+                // Keep this independent project's identity stable across releases.
+                namespace:
+                    "https://github.com/liliujie2026/Userscripts/leetcode-toolkit",
                 homepage:
-                    "https://github.com/eclipher/Userscripts/tree/main/userscripts/leetcode-toolkit",
+                    "https://github.com/liliujie2026/Userscripts/tree/main/userscripts/leetcode-toolkit",
+                supportURL:
+                    "https://github.com/liliujie2026/Userscripts/issues",
                 include: [
                     /https?:\/\/leetcode\.com\/problems\/.*/,
                     /https?:\/\/leetcode\.cn\/problems\/.*/,
@@ -53,7 +83,7 @@ export default defineConfig({
                         "https://raw.githubusercontent.com/zerotrac/leetcode_problem_rating/refs/heads/main/ratings.txt",
                 },
                 connect: ["assets.leetcode.com", "*"],
-                grant: "GM_xmlhttpRequest",
+                grant: ["GM_xmlhttpRequest", "GM_setClipboard"],
             },
         }),
     ],

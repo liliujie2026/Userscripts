@@ -10,10 +10,13 @@ export default defineConfig({
                 name: "Redirect to npmx",
                 description:
                     "A simple userscript that redirects npmjs.com to npmx.dev for a better experience.",
-                author: "eclipher",
-                namespace: "https://github.com/eclipher/Userscripts",
+                author: "eclipher; liliujie2026",
+                namespace:
+                    "https://github.com/liliujie2026/Userscripts/redirect-to-npmx",
                 homepage:
-                    "https://github.com/eclipher/Userscripts/tree/main/userscripts/redirect-to-npmx",
+                    "https://github.com/liliujie2026/Userscripts/tree/main/userscripts/redirect-to-npmx",
+                supportURL:
+                    "https://github.com/liliujie2026/Userscripts/issues",
                 match: ["*://npmjs.com/*", "*://www.npmjs.com/*"],
                 "run-at": "document-start",
                 license: "MIT",

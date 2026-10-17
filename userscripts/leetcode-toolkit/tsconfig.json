@@ -18,6 +18,7 @@
         // "isolatedModules": true
     },
     "include": [
+        "../../packages/utils/src/declaration.d.ts",
         "src/**/*.d.ts",
         "src/**/*.ts",
         "src/**/*.js",
