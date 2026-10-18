@@ -1,23 +1,17 @@
-import { globalState } from "$lib/state";
-
 import { problemState } from "./state";
-
 import { initDescriptionTab } from "./description";
-import { initEditorialTab } from "./editorial";
-import { initSolutionsTab } from "./solutions";
+import { initSolutionToolbar } from "$lib/solution-actions";
 
 async function main() {
-    const initPromises: Promise<void>[] = [];
-
-    initPromises.push(problemState.patchMonacoEditor());
-    initPromises.push(initDescriptionTab());
-    initPromises.push(initSolutionsTab());
-
-    if (globalState.site === "global") {
-        initPromises.push(initEditorialTab());
+    initSolutionToolbar();
+    // A missing editor or description pane must not disable solution exports.
+    const results = await Promise.allSettled([
+        problemState.patchMonacoEditor(),
+        initDescriptionTab(),
+    ]);
+    for (const result of results) {
+        if (result.status === "rejected") console.warn(result.reason);
     }
-
-    await Promise.all(initPromises);
 }
 
 export { main as problemPage };

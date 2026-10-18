@@ -8,7 +8,7 @@
 
         if (
             !descriptionTabButton?.classList.contains(
-                ".flexlayout__tab_button--selected",
+                "flexlayout__tab_button--selected",
             )
         ) {
             // open the description tab if it's not selected

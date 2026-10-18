@@ -38,7 +38,13 @@
 </script>
 
 <Button
-    onclick={() => downloadEditorial(findExploreEditorial, getExploreTitle)}
+    onclick={async () => {
+        try {
+            await downloadEditorial(findExploreEditorial, getExploreTitle);
+        } catch {
+            // downloadEditorial has already displayed the failure message.
+        }
+    }}
 >
     Save Article as Markdown
 </Button>

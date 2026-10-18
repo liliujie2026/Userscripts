@@ -1,56 +1,102 @@
-name: create new release for Leetcode-Toolkit
+name: Release LeetCode Toolkit
 
 on:
     push:
         tags:
-            - "leetcode-v*"
+            - "v*"
+
+permissions:
+    contents: read
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
 jobs:
     release:
-        name: "Release"
+        name: Validate, build and release
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
 
         permissions:
             contents: write
 
-        runs-on: "ubuntu-latest"
-
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
             - name: Install pnpm
               uses: pnpm/action-setup@v4
-              id: pnpm-install
               with:
-                  version: 10
+                  version: 10.34.7
                   run_install: false
 
-            - name: Setup node
-              uses: actions/setup-node@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v7
               with:
-                  node-version: 22
+                  node-version: "22"
                   cache: pnpm
+                  cache-dependency-path: pnpm-lock.yaml
+
+            - name: Check tag and package version
+              run: |
+                  node <<'NODE'
+                  const { version } = require("./userscripts/leetcode-toolkit/package.json");
+                  const tag = process.env.GITHUB_REF_NAME;
+
+                  if (!/^\d+\.\d+\.\d+$/.test(version)) {
+                      throw new Error(`Expected a stable version, received: ${version}`);
+                  }
+
+                  if (tag !== `v${version}`) {
+                      throw new Error(`Tag ${tag} does not match package version ${version}`);
+                  }
+
+                  console.log(`Release version verified: ${version}`);
+                  NODE
 
             - name: Install dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
+
+            - name: Run tests
+              run: pnpm --filter leetcode-toolkit test
+
+            - name: Check types
+              run: pnpm --filter leetcode-toolkit check
+
+            - name: Lint
+              run: pnpm --filter leetcode-toolkit lint
 
             - name: Build
-              run: pnpm -F leetcode-toolkit build
+              run: pnpm --filter leetcode-toolkit build
 
-            - name: Check build output
+            - name: Check userscript artifact
               run: |
-                  cd userscripts/leetcode-toolkit
-                  if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then
-                    echo "Build output directory is empty or doesn't exist"
-                    exit 1
-                  fi
+                  node <<'NODE'
+                  const fs = require("node:fs");
+                  const { version } = require("./userscripts/leetcode-toolkit/package.json");
+                  const file = "userscripts/leetcode-toolkit/dist/leetcode-toolkit.user.js";
 
-            - name: Create Release
-              if: success()
-              uses: ncipollo/release-action@v1
-              with:
-                  artifacts: userscripts/leetcode-toolkit/dist/*
-                  generateReleaseNotes: true
-                  allowUpdates: true
-                  artifactErrorsFailBuild: true
+                  const source = fs.readFileSync(file, "utf8");
+                  const header = source.split("// ==/UserScript==")[0];
+                  const match = header.match(/^\/\/\s*@version\s+(\S+)/m);
+
+                  if (!source.trim() || match?.[1] !== version) {
+                      throw new Error(`Artifact @version does not match ${version}`);
+                  }
+
+                  console.log(`Artifact verified: ${file}, version ${version}`);
+                  NODE
+
+            - name: Create GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  gh release create "$GITHUB_REF_NAME" \
+                      userscripts/leetcode-toolkit/dist/leetcode-toolkit.user.js \
+                      --repo "$GITHUB_REPOSITORY" \
+                      --verify-tag \
+                      --title "LeetCode Toolkit ${GITHUB_REF_NAME#v}" \
+                      --generate-notes

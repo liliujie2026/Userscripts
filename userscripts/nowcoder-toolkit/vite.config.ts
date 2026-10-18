@@ -25,10 +25,13 @@ export default defineConfig({
                     "zh-CN": "牛客网工具箱",
                 },
                 description: "复制问题为Markdown，保存为Jupyter Notebook",
-                author: "eclipher",
-                namespace: "https://github.com/eclipher/Userscripts",
+                author: "eclipher; liliujie2026",
+                namespace:
+                    "https://github.com/liliujie2026/Userscripts/nowcoder-toolkit",
                 homepage:
-                    "https://github.com/eclipher/Userscripts/tree/main/userscripts/nowcoder-toolkit",
+                    "https://github.com/liliujie2026/Userscripts/tree/main/userscripts/nowcoder-toolkit",
+                supportURL:
+                    "https://github.com/liliujie2026/Userscripts/issues",
                 license: "MIT",
                 match: ["*://www.nowcoder.com/practice/*"],
                 icon: "https://www.google.com/s2/favicons?sz=64&domain=nowcoder.com",
